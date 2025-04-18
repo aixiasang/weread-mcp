@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+      "weread": {
+        "command": "cmd",
+        "args": [
+          "/c",
+          "python", 
+          "server.py" #此处你需要设置为绝对路径
+        ],
+        "env": {
+          "WEREAD_COOKIE": "",#设计你的cookie即可
+          "PORT":"1234"#设置端口
+        }
+      }
+    }
+  }

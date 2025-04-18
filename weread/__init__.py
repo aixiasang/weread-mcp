@@ -1,0 +1,1 @@
+"""WeRead MCP API package.""" 

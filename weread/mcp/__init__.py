@@ -1,0 +1,1 @@
+"""WeRead MCP package for FastMCP implementation.""" 
