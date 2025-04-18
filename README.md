@@ -69,6 +69,8 @@ python server.py
 }
 ```
 
+设置好 `WEREAD_COOKIE` 环境变量后，所有 MCP 工具调用将自动使用此 Cookie，无需在每次调用时提供。服务启动时会创建一个持久的客户端实例，提高性能和可靠性。
+
 ### 使用 FastMCP 客户端
 
 您可以使用 FastMCP 客户端与 MCP 服务器交互:
@@ -102,22 +104,24 @@ python api_server.py
 ## 可用工具
 
 - `authenticate(cookie: str)`: 测试您的微信读书 Cookie 是否有效
-- `get_books(cookie?: str)`: 获取您微信读书库中的所有书籍
-- `get_book_info(book_id: str, cookie?: str)`: 获取特定书籍的详细信息
-- `get_book_bookmarks(book_id: str, cookie?: str)`: 获取特定书籍的划线/书签
-- `get_book_chapters(book_id: str, cookie?: str)`: 获取特定书籍的章节信息
-- `get_book_read_info(book_id: str, cookie?: str)`: 获取特定书籍的阅读进度和信息
-- `get_book_reviews(book_id: str, cookie?: str)`: 获取特定书籍的评论和笔记
+- `get_books()`: 获取您微信读书库中的所有书籍
+- `get_book_info(book_id: str)`: 获取特定书籍的详细信息
+- `get_book_bookmarks(book_id: str)`: 获取特定书籍的划线/书签
+- `get_book_chapters(book_id: str)`: 获取特定书籍的章节信息
+- `get_book_read_info(book_id: str)`: 获取特定书籍的阅读进度和信息
+- `get_book_reviews(book_id: str)`: 获取特定书籍的评论和笔记
 - `get_web_url(book_id: str)`: 获取特定书籍的微信读书网页链接
-- `format_book_highlights(book_id: str, max_highlights?: int, cookie?: str)`: 将书籍划线格式化为 markdown 字符串
-- `search_books(query: str, cookie?: str)`: 通过标题或作者搜索您微信读书库中的书籍
+- `format_book_highlights(book_id: str, max_highlights?: int)`: 将书籍划线格式化为 markdown 字符串
+- `search_books(query: str)`: 通过标题或作者搜索您微信读书库中的书籍
 
 ## 身份验证
 
-大多数工具需要使用微信读书 Cookie 进行身份验证。提供 Cookie 有两种方式:
+所有工具都使用环境变量中配置的 `WEREAD_COOKIE` 进行身份验证，您只需要：
 
 1. 在 `.env` 文件中设置 `WEREAD_COOKIE` 环境变量
-2. 在每次工具调用中传入 cookie 参数
+2. 或在启动服务器时通过环境变量传入
+
+这样一次配置后，所有后续的调用都会自动使用该 Cookie，简化了使用流程。
 
 ## 免责声明
 

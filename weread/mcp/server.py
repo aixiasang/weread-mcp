@@ -21,6 +21,15 @@ DEFAULT_COOKIE = os.getenv("WEREAD_COOKIE", "")
 # Client cache - This is a simple in-memory cache, for production consider Redis or similar
 client_cache: Dict[str, WeReadClient] = {}
 
+# Create a default client instance at startup
+default_client = None
+if DEFAULT_COOKIE:
+    try:
+        default_client = WeReadClient(DEFAULT_COOKIE)
+        client_cache[DEFAULT_COOKIE] = default_client
+    except Exception as e:
+        print(f"Warning: Failed to initialize default WeRead client: {str(e)}")
+
 # Create the FastMCP server
 mcp = FastMCP("WeRead MCP API")
 
@@ -42,6 +51,13 @@ def get_weread_client(cookie: str = None) -> WeReadClient:
     Raises:
         Exception: If authentication fails
     """
+    global default_client
+    
+    # If no cookie specified and we have a default client, return it
+    if cookie is None and default_client is not None:
+        return default_client
+        
+    # Otherwise, use the provided cookie or default from env
     cookie = cookie or DEFAULT_COOKIE
     
     if not cookie:
@@ -80,17 +96,14 @@ def authenticate(cookie: str) -> Dict[str, bool]:
 
 # Books tools
 @mcp.tool()
-def get_books(cookie: Optional[str] = None) -> BookListResponse:
+def get_books() -> BookListResponse:
     """
     Get a list of all books in your WeRead library.
     
-    Args:
-        cookie: Optional WeRead cookie string
-        
     Returns:
         List of books
     """
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     books = client.get_notebooklist()
     
     if books is None:
@@ -100,18 +113,17 @@ def get_books(cookie: Optional[str] = None) -> BookListResponse:
 
 
 @mcp.tool()
-def get_book_info(book_id: str, cookie: Optional[str] = None) -> BookInfoResponse:
+def get_book_info(book_id: str) -> BookInfoResponse:
     """
     Get detailed information for a specific book.
     
     Args:
         book_id: Book ID
-        cookie: Optional WeRead cookie string
         
     Returns:
         Book information
     """
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     
     # Get basic notebook info first
     books = client.get_notebooklist()
@@ -154,18 +166,17 @@ def get_book_info(book_id: str, cookie: Optional[str] = None) -> BookInfoRespons
 
 
 @mcp.tool()
-def get_book_bookmarks(book_id: str, cookie: Optional[str] = None) -> BookmarkResponse:
+def get_book_bookmarks(book_id: str) -> BookmarkResponse:
     """
     Get bookmarks/highlights for a specific book.
     
     Args:
         book_id: Book ID
-        cookie: Optional WeRead cookie string
         
     Returns:
         List of bookmarks
     """
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     bookmarks = client.get_bookmark_list(book_id)
     
     if bookmarks is None:
@@ -175,18 +186,17 @@ def get_book_bookmarks(book_id: str, cookie: Optional[str] = None) -> BookmarkRe
 
 
 @mcp.tool()
-def get_book_chapters(book_id: str, cookie: Optional[str] = None) -> ChapterResponse:
+def get_book_chapters(book_id: str) -> ChapterResponse:
     """
     Get chapter information for a specific book.
     
     Args:
         book_id: Book ID
-        cookie: Optional WeRead cookie string
         
     Returns:
         Chapter information
     """
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     chapters = client.get_chapter_info(book_id)
     
     if chapters is None:
@@ -196,18 +206,17 @@ def get_book_chapters(book_id: str, cookie: Optional[str] = None) -> ChapterResp
 
 
 @mcp.tool()
-def get_book_read_info(book_id: str, cookie: Optional[str] = None) -> ReadInfoResponse:
+def get_book_read_info(book_id: str) -> ReadInfoResponse:
     """
     Get reading information for a specific book.
     
     Args:
         book_id: Book ID
-        cookie: Optional WeRead cookie string
         
     Returns:
         Reading information
     """
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     read_info = client.get_read_info(book_id)
     
     if read_info is None:
@@ -232,18 +241,17 @@ def get_book_read_info(book_id: str, cookie: Optional[str] = None) -> ReadInfoRe
 
 
 @mcp.tool()
-def get_book_reviews(book_id: str, cookie: Optional[str] = None) -> ReviewResponse:
+def get_book_reviews(book_id: str) -> ReviewResponse:
     """
     Get reviews and notes for a specific book.
     
     Args:
         book_id: Book ID
-        cookie: Optional WeRead cookie string
         
     Returns:
         Reviews and notes
     """
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     summary, reviews = client.get_review_list(book_id)
     
     return ReviewResponse(
@@ -270,19 +278,18 @@ def get_web_url(book_id: str) -> Dict[str, str]:
 
 
 @mcp.tool()
-def format_book_highlights(book_id: str, max_highlights: Optional[int] = 10, cookie: Optional[str] = None) -> str:
+def format_book_highlights(book_id: str, max_highlights: Optional[int] = 10) -> str:
     """
     Get and format highlights for a book into a nicely formatted string.
     
     Args:
         book_id: Book ID
         max_highlights: Maximum number of highlights to include (default: 10)
-        cookie: Optional WeRead cookie string
         
     Returns:
         Formatted highlights string
     """
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     
     # Get book details first to include title
     book_info = None
@@ -312,19 +319,18 @@ def format_book_highlights(book_id: str, max_highlights: Optional[int] = 10, coo
 
 
 @mcp.tool()
-def search_books(query: str, cookie: Optional[str] = None) -> List[Dict[str, Any]]:
+def search_books(query: str) -> List[Dict[str, Any]]:
     """
     Search for books in your WeRead library by title or author.
     
     Args:
         query: Search query string
-        cookie: Optional WeRead cookie string
         
     Returns:
         List of matching books
     """
     query = query.lower()
-    client = get_weread_client(cookie)
+    client = get_weread_client()
     books = client.get_notebooklist()
     
     if not books:
